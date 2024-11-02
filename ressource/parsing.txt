@@ -1,0 +1,255 @@
+ft_split modifie
+
+quotes
+
+creation des noeuds:
+
+- typedef struct s_node 
+
+pour le parcours de la chaine :
+
+coder une fonction qui avance tant quon ne rencontre pas un parametre (>, >>, < , <<, | )
+
+si on rencontre un parametre :
+
+si c est une redirection -> on creer une structure noeud pour tt 
+ce qu il y a a gauche qui va pointer sur t_redirection qui contiendra le fichier un noeud back et next
+
+si cest un pipe : faire pointer la structure qu on creera sur la structure t_pipe qui contiendra la
+sortie de la commande de gauche et l entree de la commande de droite
+
+
+
+Environnement variable : 
+
+des que le proggramme se lance = stocker les environnement dans structure puis convertir en tableau de tableau (plus simple)
+fonction set_env_var();
+
+pour la gestion des commandes qui manipulent les variables d environnement;
+
+coder une fonction qui trie sort_lst() (bubble sort par ex) la liste chainee avant de l afficher (pour la commande
+export sans arguments) et coder une autre fonction lst_to_tab()
+
+
+
+peut etre utile :
+
+# define INPUT		1	//"<"
+# define HEREDOC	2	//"<<"
+# define TRUNC		3	//">"
+# define APPEND		4	//">>"
+# define PIPE		5	//"|"
+# define CMD		6	//"|"
+# define ARG		7	//"|"
+
+gerer le $? -> doit renvoyer le retour de la derniere commande execute
+creer une variable dans notre structure data qui contiendra le retour de la derniere commande
+
+si le dernier token est un pipe -> error;
+
+
+
+
+--------------------------------------------
+
+Ma gestion du parsing : 
+
+creer des noeuds a chaque pipe (les redir seront geres dans les noeuds directement en utilisant
+une liste chaine s_redir)
+
+
+Dans le .h :
+
+- avoir une structure env_var dans ma data qui contiendra un (a redefinir)tableau
+de tableau de mes env_var et un pointeur sur la tete de ma liste chainee 
+- avoir une liste chainee s_redir initialisee s il y a des redirections (en dehors des pipes)
+- avoir un booleen pour savoir si c est le dernier noeud (et donc qu il n y a pas de pipes apres)
+- avoir un booleen pour savoir si c est un builtin ou non
+
+
+dans ma fonction parsing :
+
+- commencer par la gestion des quotes en splitant ma ligne 
+deux solutions pour la gestion de la ligne :
+
+spliter tout et concatener tout ce qu il y a entre deux pipes
+
+ou
+
+spliter tt et faire des tokens pour chaque mot (ce qui peut compliquer la reception de la ligne
+pour l execution)
+
+ce qu il y a a gerer pdt le parsing :
+
+--------------------------------
+
+- les simples quotes :
+{
+    s il y a une quotes, avancer dans la chaine tant qu on ne retombe pas sur la meme
+    -> faire un substr si l on trouve une deuxieme cote similaire
+    et malloc cette chaine qui fera partie de notre **tableau
+    si l on ne trouve pas une deuxieme quote similaire, erreur;1
+
+}
+
+Pour les doubles quotes :
+{
+    -avancer tant qu on ne retrouve pas une deuxieme quotes
+    {
+    gestion des variables d environnements :
+    {
+        si on tombe sur un $ :
+        {
+            -avancer tant qu il y a des caracteres alphanumeriques ou un _ 
+            -recuperer cette cle et aller la comparer a chaque cles de notre liste chainee
+            {
+                -si elle n existe pas aller a la fin de la cle ($USER|ici) et l ignorer
+
+                -sinon recuperer la len de la valeur pour preparer le tableau qui sera mis dans 
+                notre **tab
+            }
+        }
+        sinon
+        {
+            incrementer la len
+        }
+    }
+    }
+    recuperer la len_total(len des caracteres normaux + len des valeurs des variables d 
+    environnement )
+    mallocer notre tableau
+    repasser dans nos doubles quotes
+    {
+        tant qu on ne tombe pas sur un $ ecrire le caracteres
+        si $
+        {
+            refaire la verif pour voir ou elle s arrete
+            aller chercher la VE et l ecrire dans le tableau
+            et actualiser l index a la fin de notre $
+        }
+    }
+}
+
+----------------------------------------
+
+donc pour les pipes et les redirections il y a deux gestions differentes :
+{
+    - s il y a un node.next alors il y a un pipe a creer entre le noeud actuel et le next;
+    - s il y a une liste chainee de s_redir, cest qu il y a un pipe a creer entre le noeud et le
+    file correspondant.
+    
+}
+
+-----------------------------------------------
+
+Pour les redirections :
+
+2 pistes possibles :
+
+< rediriger l entree : doit etre place avant le file mais peut etre avant ou apres la commande
+d ou la necessite de gerer les pipes avant l execution des commandes; ne doit pas creer le 
+fichier
+
+<< heredoc  avec son LIMITER
+
+>> append, ecrit a la suite, le creer s il n existe pas
+
+> 
+
+----------------------------------------------
+
+gestion du $? : 
+
+dans le parsing :
+si $ 
+{
+    si i + 1 = ?
+    {
+        alors, aller chercher le retour de la derniere commande
+    }
+    sinon
+        cest une variable d environnements.
+}
+verifier si on doit avoir le retour des builtins car bcp plus complique a aller chercher
+0 : La commande s'est exécutée avec succès.
+1 : Erreur générique. Cela indique souvent qu'il y a eu une erreur dans l'exécution de la commande.
+2 : Mauvaise utilisation des commandes ou syntaxe incorrecte.
+126 : La commande a été trouvée, mais elle n'est pas exécutable (permissions).
+127 : La commande n'a pas été trouvée. Cela signifie que le terminal ne peut pas localiser l'exécutable.
+130 : L'utilisateur a interrompu la commande avec Ctrl+C
+
+rien de compliquer, avoir une variable retour dans data qui contiendra le retour de la commande
+precedente 
+
+utiliser waitpid et aller chercher le retour avec WEXITSTATUS();
+
+
+---------------------
+
+dans l execution :
+
+- penser a creer et gerer les redir et pipes avant l execution (pour rediriger l entree par 
+exemple)
+
+--------------------
+
+Pour les variables d environnements :
+
+peut etre utiliser des tables de hachages pour gerer mes variables d environnements.
+
+mbetcher@c3r3p4:~$ export endd8+=salut
+mbetcher@c3r3p4:~$ echo "$endd8"
+777777bsalut
+gerer le += de export ->doit ajouter les caracteres a la suite de la chaines
+
+gerer ce cas :
+
+~mbetcher@c3r3p4:~$ echo "$endd8m"
+
+~mbetcher@c3r3p4:~$ echo "$endd8;"
+777777bsalutsalu;
+~mbetcher@c3r3p4:~$ echo "$endd8 n"
+777777bsalutsalu n
+
+
+
+
+---------------------------
+
+Peut etre utile :
+
+-Faire un pre parsing :
+{
+    -verif double pipes
+    -
+}
+
+
+
+
+pour les etapes du split de la chaine :
+
+l attribution des variables d environnements sera faites pendant la gestion des quotes, ne 
+restera que les redirections a gerer.
+une fois les redirections gerer resplit la chaine qui sans les redirections + leur file.
+une fois cela fait, ne restera plus qu a envoyer cela dans l execution.
+
+
+
+
+
+
+
+
+
+https://pageperso.lis-lab.fr/~benjamin.monmege/diu_eil_semaine3/cours/cours4_slides.pdf
+
+
+
+
+-----------------------------------
+
+La gestion des pipes dans l execution:
+{
+    
+}
