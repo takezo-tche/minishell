@@ -33,11 +33,4 @@ int	main(int argc, char **argv, char **envp)
 
     free_envp(&data);
     return (0);
-}*/
-
-int main (int ac, char **av)
-{
-	printf("%d", ac);
-	printf("%s", av[1]);
-	return (1);
 }
