@@ -6,16 +6,17 @@ CFLAGS = -Wall -Wextra -Werror -Iinclude
 LIBS = -lreadline
 
 SRCDIR = .
-BUILTIN_DIR = builtin
+BUILTIN_DIR = execution
 ENV_DIR = env
 
 OBJDIR = obj
 
 SRCS = $(SRCDIR)/main.c \
-	   $(ENV_DIR)/env.c \
-	   $(ENV_DIR)/export.c
+	   $(ENV_DIR)/set_env.c \
+	   $(ENV_DIR)/env_utils.c \
+	   $(BUILTIN_DIR)/ft_env.c 
 
-OBJS = $(SRCS:%.c=$(OBJDIR)/%.o)
+OBJS = $(patsubst %.c, $(OBJDIR)/%.o, $(SRCS))
 
 GRAY = \033[37m
 GREEN = \033[32m
@@ -33,7 +34,7 @@ $(NAME): $(OBJS)
 	@echo " "
 
 $(OBJDIR)/%.o: %.c
-	@mkdir -p $(dir $@)
+	@mkdir -p $(dir $@) # Crée le répertoire cible dans OBJDIR si nécessaire
 	@$(CC) $(CFLAGS) -c $< -o $@
 	@echo "$(GRAY)Compilation de $< -> $@$(RESET)"
 
