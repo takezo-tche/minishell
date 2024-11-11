@@ -38,7 +38,7 @@ typedef enum e_tokentype
 	PIPE,       // Pipe
 	CMD,        // Commande (execution par execve)
 	ARG         // Argument (Si commande à arguments)
-}	t_tokentype;*/
+}	t_tokentype;
 
 typedef struct s_var // liste chainee pour les variables d environnement
 {
@@ -74,7 +74,7 @@ typedef struct s_var_data
 */
 
 // *** STRUCT ***
-*/
+
 /*
 typedef enum e_tokentype
 {
@@ -104,27 +104,22 @@ typedef struct s_token
 
 
 // *** INITIALISATION ***
-
 t_data	*init_data(t_data *data);
 
 // *** FUNCTION VARIABLE ENV ***
-
-void    init_env(t_data *data, char **envp_system);
-void    ft_env(t_data *data);
-void    free_envp(t_data *data);
-
-void ft_export(t_data *data);
-void    bubble_sort_env(char **env);
-
+t_var	*get_env_var(t_var *var_data, const char *key);
+t_var	*create_var(const char *key, const char *value);
+void	init_env(t_data *data, char **envp_system);
+void	free_env_vars(t_data *data);
 
 // *** FUNCTION PARSING ***
 
 // *** FUNCTION COMMAND ***
-
+void	ft_env(t_data *data);
 
 // *** FUNCTION DBUG ***
 
-// *** FREE & QUIT ***
+// *** FREE & QUIT ***	
 
 
 void	free_data(t_data *data);

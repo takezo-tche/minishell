@@ -1,61 +1,59 @@
 #include "../include/minishell.h"
 
-
-void    init_env(t_data *data, char **envp_system)
+t_var	*create_var(const char *key, const char *value)
 {
-    int i;
-    int j;
+	t_var	*new_var;
 
-    i = 0;
-    // compter le nbr de variable env
-    while (envp_system[i] != NULL)
-        i++;
-
-    // memoire
-    data->envp = malloc(sizeof(char *) * (i + 1));
-    if (!data->envp)
-    {
-        perror("Error alloc memoire");
-        exit(EXIT_FAILURE);
-    }
-    j = 0;
-    while (j < i)
-    {
-        data->envp[j] = strdup(envp_system[j]);
-        if  (!data->envp[j])
-        {
-            perror("Error lors de la dupli de la chaine");
-            exit(EXIT_FAILURE);
-        }
-        j++;
-    }
-    data->envp[i] = NULL; 
+	new_var = malloc(sizeof(t_var));
+	if (!new_var)
+	{
+		printf("Erreur : malloc a échoué\n");
+		exit (1);
+	}
+	new_var->key = strdup(key);
+	new_var->value = strdup(value);
+	new_var->next = NULL;
+	return (new_var);
 }
 
-
-void    ft_env(t_data *data)
+t_var	*get_env_var(t_var *var_data, const char *key)
 {
-    int i;
+	t_var	*current;
 
-    i = 0;
-    while (data->envp[i] != NULL)
-    {
-        printf("%s\n", data->envp[i]);
-        i++;
-    }
+	current = var_data;
+	while (current)
+	{
+		if (strcmp(current->key, key) == 0)
+			return (current);
+		current = current->next;
+	}
+	return (NULL);
 }
 
-void    free_envp(t_data *data)
+void	init_env(t_data *data, char **envp)
 {
-    int i;
+	t_var	*current;
+	t_var	*new_var;
+	int		i;
+	char	*equal_sign;
 
-    i = 0;
-    while (data->envp[i] != NULL)
-    {
-        free(data->envp[i]);
-        i++;
-    }
-    free(data->envp);
+	i = 0;
+	current = NULL;
+	data->var_data = NULL;
+	while (envp[i])
+	{
+		equal_sign = strchr(envp[i], '=');
+		if (equal_sign)
+		{
+			new_var = create_var(strndup(envp[i],
+						equal_sign - envp[i]), equal_sign + 1);
+			if (!data->var_data)
+				data->var_data = new_var;
+			else
+				current->next = new_var;
+			current = new_var;
+		}
+		i++;
+	}
+	data->envp = NULL;
 }
-
-
